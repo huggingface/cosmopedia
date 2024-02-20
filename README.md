@@ -11,7 +11,7 @@ Here you can find the code used for creating [Cosmopedia](https://huggingface.co
 Cosmopedia covers a variety of topics; we tried to map world knowledge present in Web datasets like RefinedWeb and RedPajama, and generate synthetic content that covers them. This is the v0.1 of Cosmopedia, with ample room for improvement and topics to be more comprehensively covered. We hope this dataset will help the community's research efforts in the increasingly intriguing domain of synthetic data.
 
 <div align="center">
-    <img src="./plots/clusters_map.png" alt="clusters" width="700" height="400">
+    <img src="./plots/clusters_map.png" alt="clusters" width="900" height="600">
     <p>The clusters of Cosmopedia</p>
 </div>
 You can also find a files frequency plot of single topic clusters in `plots/topic_distpng.png`.
