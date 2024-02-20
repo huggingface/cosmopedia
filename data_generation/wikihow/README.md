@@ -1,1 +1,0 @@
-An updated list of wikihow titles can be extracted using https://github.com/mediawiki-client-tools/mediawiki-dump-generator
