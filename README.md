@@ -22,7 +22,7 @@ Cosmopedia covers a variety of topics; we tried to map world knowledge present i
 You can also find a files frequency plot of single topic clusters in `plots/topic_distpng.png`.
 
 ## Code structure
-- `prompts`: the code for building the prompts in each `seed_data` in Cosmopedia.
+- `prompts`: the code for building the prompts in each `seed_data` in Cosmopedia. In `web_samples`, you can also find pointers for the topic clustering we did.
 - `generation`: the code to run large scale synthetic generations with [llm-swarm](https://github.com/huggingface/llm-swarm) using the prompts you built. Cosmopedia consists of 25B tokens and was generated in > 10k H100 GPU hours.
 - `deduplication`: the script we used to run MinHash deduplication with [datatrove](https://github.com/huggingface/datatrove).
 - `decontamination`: the code we used to run n-gram decontamination against evaluation benchmarks, when training models on the dataset like [cosmopedian-1b](https://huggingface.co/HuggingFaceTB/cosmopedian-1b). 
