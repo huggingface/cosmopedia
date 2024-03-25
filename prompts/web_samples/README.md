@@ -2,7 +2,7 @@
 
 We built several types of synthetic content from seed web samples: textbooks (in narrative or academic tone), blogposts and WikiHow articles.
 
-To select the web samples, we initially clutsred 100k samples from a web dataset like [ReFineWeb](https://huggingface.co/datasets/tiiuae/falcon-refinedweb). This resulted into 145 cluters. You can inspect the clusters in this [demo](https://huggingface.co/spaces/HuggingFaceTB/inspect_clusters_free_topics). Then we inferred the clusters of 15M other web samples and used them for the prompts with their topic.
+To select the web samples, we initially clustered 100k samples from a web dataset like [ReFineWeb](https://huggingface.co/datasets/tiiuae/falcon-refinedweb). This resulted into 145 cluters. You can inspect the clusters in this [demo](https://huggingface.co/spaces/HuggingFaceTB/inspect_clusters_free_topics). Then we inferred the clusters of 15M other web samples and used them for the prompts with their topic.
 
 The clustering code can be found in [text-clustering](https://github.com/huggingface/text-clustering?tab=readme-ov-file#cosmopedia-experiments-clustering-of-web-samples-and-topic-labeling) repository. We then excluded 38 clutsers, deemed uneducational, using the scores generated in the clustering, but also after doing some manual inspection of each cluster. We noticed that medium scores weren't always of the topic quality. 
 
