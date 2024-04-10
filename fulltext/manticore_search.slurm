@@ -17,7 +17,7 @@ ulimit -n 99999
 
 mkdir -p /scratch/cosmo/manticore_idx
 rm -rf /scratch/cosmo/manticore_idx/*
-aws s3 cp s3://cosmopedia-data/manticore_idx/CC-MAIN-2013-20/ /scratch/cosmo/manticore_idx/ --recursive
+rclone copy -P --transfers 16 s3:cosmopedia-data/manticore_idx/CC-MAIN-2023-50/ /scratch/cosmo/manticore_idx/
 
 srun --container-image='manticoresearch/manticore:6.2.12' \
     --container-mounts="/scratch/cosmo/manticore_idx:/var/lib/manticore:z,$(pwd)/manticore.conf:/etc/manticoresearch/manticore.conf" \
