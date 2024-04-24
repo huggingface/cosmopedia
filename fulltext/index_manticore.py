@@ -85,7 +85,7 @@ def main():
     print("Loading dataset", file=sys.stderr)
     dataset = load_dataset(
         "HuggingFaceFW/fineweb",
-        "CC-MAIN-2023-50",
+        "CC-MAIN-2024-10",
         split="train",
         num_proc=32,
         cache_dir="/scratch/cosmo/.cache",

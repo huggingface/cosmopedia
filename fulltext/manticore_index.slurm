@@ -29,6 +29,7 @@ python index_manticore.py
 
 sleep 1000
 
-aws s3 cp /scratch/cosmo/manticore_idx/ s3://cosmopedia-data/manticore_idx/CC-MAIN-2023-50/ --recursive
+rclone copy -P --transfers 16 /scratch/cosmo/manticore_idx/ s3:cosmopedia-data/manticore_idx/CC-MAIN-2024-10/ --recursive
+rsync -aP /scratch/cosmo/manticore_idx/ /fsx/anton/cosmopedia/search_index/index-CC-MAIN-2024-10-test/
 
 sleep 1000000000
