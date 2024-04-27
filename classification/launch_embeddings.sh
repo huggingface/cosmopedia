@@ -1,0 +1,14 @@
+#!/bin/bash
+
+# increment step for each job
+INCREMENT=100000
+
+# maximum end value
+MAX_END=100000
+#MAX_END=12000000
+
+for ((start=0; start<MAX_END; start+=INCREMENT)); do
+    end=$((start+INCREMENT))
+    echo 🚀 Launching embeddings for samples from $start to $end
+    sbatch /fsx/loubna/projects/cosmopedia/prompts/judge/run_embeddings.slurm "$start" "$end"
+done
