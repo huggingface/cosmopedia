@@ -1,7 +1,7 @@
 
 # Synthetic data generation
 
-If you have a large dataset of prompts and want to generate content using an Open-Source LLM like [Mixtral-8x7B-Instruct-v0.1](https://huggingface.co/mistralai/Mixtral-8x7B-Instruct-v0.1), you can use `llm-swarm` which spins TGI or vLLM instances on `slurm`clutsres, we used it to generated Cosmopedia, which con sists of 25B tokens. The full generation took around 16k H100 GPU hours.
+If you have a large dataset of prompts and want to generate content using an Open-Source LLM like [Mixtral-8x7B-Instruct-v0.1](https://huggingface.co/mistralai/Mixtral-8x7B-Instruct-v0.1), you can use `llm-swarm` which spins TGI or vLLM instances on `slurm`clutsres, we used it to generated Cosmopedia, which con sists of 25B tokens. The full generation took around > 10k H100 GPU hours.
 
 You can find the instructions for running the generation in `llm-swarm` here: https://github.com/huggingface/llm-swarm/tree/loubna/examples/textbooks
 
