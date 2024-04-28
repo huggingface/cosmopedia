@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # increment step for each job
-INCREMENT=100000
+INCREMENT=2000000
 
 # maximum end value
-MAX_END=100000
+MAX_END=12000000
 #MAX_END=12000000
 
 for ((start=0; start<MAX_END; start+=INCREMENT)); do

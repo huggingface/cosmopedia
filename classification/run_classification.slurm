@@ -41,7 +41,7 @@ start=$1
 end=$2
 
 launch_args="/fsx/loubna/projects/cosmopedia/prompts/judge/run_classification.py\
-            --dataset_name /fsx/loubna/data/fineweb_2024_10/data \
+            --dataset_name /fsx/loubna/data/fineweb_2024_10 \
             --start $start \
             --end $end \
             --classifier_path /fsx/loubna/projects/cosmopedia/prompts/judge/embeddings_cache/logistic_regression_binary_classifier.joblib"

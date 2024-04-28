@@ -7,6 +7,7 @@ import numpy as np
 from datasets import load_dataset
 from joblib import load
 from sentence_transformers import LoggingHandler
+from shard import save_manual_shards
 
 logging.basicConfig(
     format="%(asctime)s - %(message)s",
@@ -49,8 +50,7 @@ if __name__ == "__main__":
         logging.info(f"An embeddings path was provided: {args.override_embedding_path}")
         cache_file = args.override_embedding_path
     else:
-        # embeddings_file_name = f"{args.dataset_name.split('/')[-1]}_{format_number(args.start)}_{format_number(args.end)}"
-        embeddings_file_name = f"{args.dataset_name.split('/')[1]}_{format_number(args.start)}_{format_number(args.end)}"
+        embeddings_file_name = f"{args.dataset_name.split('/')[-1]}_{format_number(args.start)}_{format_number(args.end)}"
         cache_file = os.path.join(args.cache_dir, f"embed_{embeddings_file_name}.pkl")
     assert os.path.exists(cache_file), f"No embeddings found at {cache_file}."
 
@@ -69,7 +69,14 @@ if __name__ == "__main__":
 
     dataset = dataset.add_column("predicted_class", Y_pred)
     logging.info(dataset)
-    dataset.push_to_hub(f"{args.target_org}/{embeddings_file_name}", private=True)
+    save_path = f"/fsx/loubna/projects/cosmopedia/prompts/judge/data_temp/{embeddings_file_name}"
+    if not os.path.exists(save_path):
+        os.makedirs(save_path)
+    save_manual_shards(dataset, save_path)
+    #dataset.push_to_hub(f"{args.target_org}/{embeddings_file_name}", private=True)
+    # logging.info(
+    #     f"🎀 Inference done! Data saved at: {args.target_org}/{embeddings_file_name}"
+    # )
     logging.info(
-        f"🎀 Inference done! Data saved at: {args.target_org}/{embeddings_file_name}"
+        f"🎀 Inference done! Data saved at: {save_path}"
     )
