@@ -72,7 +72,7 @@ for index in range(len(data)):
     query = " / ".join([sample["top_category"].strip(), sample["subcategory"].strip(), sample["subtopic"].strip(),])
     while True:
         try:
-            max_pages = max(1000, args.n_pages)
+            max_pages = 10_000
             print(f"n_pages requested: {args.n_pages}, max_pages: {max_pages}")
             response = requests.post(
                 "http://127.0.0.1:9308/search",
