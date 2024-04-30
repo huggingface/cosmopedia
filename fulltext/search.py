@@ -1,11 +1,11 @@
 import argparse
 import json
+import os
 import sys
 import time
-import os
 
-import requests
 import pandas as pd
+import requests
 from datasets import Dataset, concatenate_datasets, load_dataset
 from tqdm import tqdm
 
@@ -15,7 +15,6 @@ def get_args():
     parser.add_argument("--input_dataset", type=str, default="HuggingFaceTB/bisac_expanded_final")
     parser.add_argument("--n_topics", type=int, default=2000)
     parser.add_argument("--n_pages", type=int, default=1000)
-    parser.add_argument("--n_chunks", type=int, default=4)
     parser.add_argument("--save_interval", type=int, default=1000)
     parser.add_argument("--target_datadet_prefix", type=str, default="HuggingFaceTB/search")
     return parser.parse_args()
@@ -27,7 +26,7 @@ def load_and_merge(directory_path, id, args):
     2- explode the topic_hits column
     3- convert each chunk to datasets and concatenate the subsets"""
     json_files = [file for file in os.listdir(directory_path) if file.endswith('.json')]
-    print(f"Found {len(json_files)} chunks (={args.n_topics / args.save_interval - 1})")
+    print(f"Found {len(json_files)} chunks (={args.n_topics / args.save_interval})")
 
     print("Loading the chunks...")
     data_subsets = []
@@ -35,15 +34,13 @@ def load_and_merge(directory_path, id, args):
         file_path = os.path.join(directory_path, file)
         with open(file_path, 'r') as f:
             data = json.load(f)
-        df = pd.DataFrame(data)
-        df = df.explode("topic_hits")
+        df = pd.DataFrame(data).explode("topic_hits")
         data_subsets.append(Dataset.from_pandas(df))
 
     print("Merging the chunks...")
     merged_data = concatenate_datasets(data_subsets).remove_columns(["__index_level_0__"])
     print(merged_data)
     print(f"Sanity check on the pages from topic 0: {merged_data[0]['topic_hits']}")
-
     merged_data.push_to_hub(f"{args.target_datadet_prefix}_{id}", private=True)
     print(f"Done! The data is available at '{args.target_datadet_prefix}_{id}' 🔥")
 
@@ -75,6 +72,7 @@ for index in range(len(data)):
     query = " / ".join([sample["top_category"].strip(), sample["subcategory"].strip(), sample["subtopic"].strip(),])
     while True:
         try:
+            print(f"NPAGES is {args.n_pages}")
             response = requests.post(
                 "http://127.0.0.1:9308/search",
                 data=json.dumps(
@@ -103,7 +101,7 @@ for index in range(len(data)):
     save_interval = min(args.n_topics, args.save_interval)
     if index > 0 and (index + 1) % save_interval == 0:
         # Save data every save_interval topics and reinitialize intermediate dicts
-        save_path = f"intermediate_data/{id}/data_{index - save_interval}_{index}.json"
+        save_path = f"intermediate_data/{id}/data_{index + 1 - save_interval}_{index + 1}.json"
         with open(save_path, "w") as fp:
             json.dump(intermediate_data, fp)
         print(f"💾 Saved intermediate data at {save_path}")
