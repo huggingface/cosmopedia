@@ -66,6 +66,7 @@ id = f"{args.n_topics}t_{args.n_pages}p"
 os.makedirs(f"intermediate_data/{id}", exist_ok=True)
 
 intermediate_data = []
+total_length = len(data)
 for index in range(len(data)):
     sample = data[index]
     sample["topic_hits"] = []
@@ -113,7 +114,8 @@ for index in range(len(data)):
     save_interval = min(args.n_topics, args.save_interval)
     if index > 0 and (index + 1) % save_interval == 0:
         # Save data every save_interval topics and reinitialize intermediate dicts
-        save_path = f"intermediate_data/{id}/data_{index + 1 - save_interval}_{index + 1}.json"
+        start_index = index + 1 - save_interval if (index + 1) % save_interval == 0 else max(0, index + 1 - (index + 1) % save_interval)
+        save_path = f"intermediate_data/{id}/data_{start_index}_{index + 1}.json"
         with open(save_path, "w") as fp:
             json.dump(intermediate_data, fp)
         print(f"💾 Saved intermediate data at {save_path}")
