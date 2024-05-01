@@ -1,7 +1,7 @@
 from elasticsearch import Elasticsearch, helpers
 from datasets import load_dataset
 
-es = Elasticsearch("http://localhost:9200")  # Adjust the URL based on your ES setup
+es = Elasticsearch("http://localhost:9200")
 
 
 def create_index(index_name="fineweb"):
@@ -57,9 +57,6 @@ def create_index(index_name="fineweb"):
 
 
 def insert_batch(batch):
-    """
-    Function to insert a batch of records into Elasticsearch
-    """
     actions = [
         {
             "_index": "fineweb",
@@ -84,9 +81,6 @@ def insert_batch(batch):
 
 
 def register_repository(repo_name="fineweb_backup", repo_path="/usr/share/elasticsearch/snapshots"):
-    """
-    Registers a filesystem repository for snapshots.
-    """
     body = {
         "type": "fs",
         "settings": {
@@ -99,9 +93,6 @@ def register_repository(repo_name="fineweb_backup", repo_path="/usr/share/elasti
 
 
 def create_snapshot(repo_name="fineweb_backup", snapshot_name="snapshot_1"):
-    """
-    Creates a snapshot of all indices in the specified repository.
-    """
     es.snapshot.create(repository=repo_name, snapshot=snapshot_name, wait_for_completion=False)
     print(f"Snapshot {snapshot_name} created in repository {repo_name}")
 
