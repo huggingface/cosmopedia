@@ -13,10 +13,10 @@ from tqdm import tqdm
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--input_dataset", type=str, default="HuggingFaceTB/bisac_expanded_final")
-    parser.add_argument("--n_topics", type=int, default=2000)
-    parser.add_argument("--n_pages", type=int, default=1000)
+    parser.add_argument("--n_topics", type=int, default=1000)
+    parser.add_argument("--n_pages", type=int, default=20)
     parser.add_argument("--save_interval", type=int, default=1000)
-    parser.add_argument("--target_datadet_prefix", type=str, default="HuggingFaceTB/search")
+    parser.add_argument("--target_datadet_prefix", type=str, default="HuggingFaceTB/search_boosted")
     return parser.parse_args()
 
 
@@ -69,7 +69,16 @@ intermediate_data = []
 for index in range(len(data)):
     sample = data[index]
     sample["topic_hits"] = []
-    query = " / ".join([sample["top_category"].strip(), sample["subcategory"].strip(), sample["subtopic"].strip(),])
+    top_category = sample["top_category"].strip()
+    subcategory = sample["subcategory"].strip()
+    subtopic = sample["subtopic"].strip()
+    for c in ['!', '"', '$', "'", '(', ')', '/', '<', '@', '\\', '^', '|', '~']:
+        top_category = top_category.replace(c, ' ')
+        subcategory = subcategory.replace(c, ' ')
+        subtopic = subtopic.replace(c, ' ')
+    # boosting the IDF score of subtopic tokens
+    subtopic = " ".join([w + "^2" for w in subtopic.split()])
+    query = " ".join([top_category, subcategory, subtopic])
     while True:
         try:
             max_pages = 10_000
@@ -80,7 +89,7 @@ for index in range(len(data)):
                     {
                         "index": "fineweb",
                         "size": args.n_pages,
-                        "query": {"match": {"content": query}},
+                        "query": {"query_string": query},
                         "max_matches": max_pages,
                     }
                 ),

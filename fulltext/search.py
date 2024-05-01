@@ -13,10 +13,10 @@ from tqdm import tqdm
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--input_dataset", type=str, default="HuggingFaceTB/bisac_expanded_final")
-    parser.add_argument("--n_topics", type=int, default=2000)
-    parser.add_argument("--n_pages", type=int, default=1000)
+    parser.add_argument("--n_topics", type=int, default=1000)
+    parser.add_argument("--n_pages", type=int, default=20)
     parser.add_argument("--save_interval", type=int, default=1000)
-    parser.add_argument("--target_datadet_prefix", type=str, default="HuggingFaceTB/search")
+    parser.add_argument("--target_datadet_prefix", type=str, default="HuggingFaceTB/search_default")
     return parser.parse_args()
 
 

@@ -3,8 +3,8 @@
 #SBATCH --partition hopper-prod
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
-#SBATCH --cpus-per-task=32
-#SBATCH --mem-per-cpu=21G
+#SBATCH --cpus-per-task=96
+#SBATCH --mem-per-cpu=20G
 #SBATCH -o %x_%j.out
 #SBATCH -e %x_%j.err
 

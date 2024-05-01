@@ -3,8 +3,8 @@
 #SBATCH --partition hopper-prod
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
-#SBATCH --cpus-per-task=64
-#SBATCH --mem-per-cpu=21G
+#SBATCH --cpus-per-task=96
+#SBATCH --mem-per-cpu=20G
 #SBATCH -o %x_%j.out
 #SBATCH -e %x_%j.err
 #SBATCH --time=7-00:00:00
@@ -29,7 +29,7 @@ python index_manticore.py
 
 sleep 1000
 
-rclone copy -P --transfers 16 /scratch/cosmo/manticore_idx/ s3:cosmopedia-data/manticore_idx/CC-MAIN-2024-10/ --recursive
-rsync -aP /scratch/cosmo/manticore_idx/ /fsx/anton/cosmopedia/search_index/index-CC-MAIN-2024-10-test/
+rclone copy -P --transfers 32 /scratch/cosmo/manticore_idx/ s3:cosmopedia-data/manticore_idx/CC-MAIN-2024-10-2023-50/
+#rsync -aP /scratch/cosmo/manticore_idx/ /fsx/anton/cosmopedia/search_index/index-CC-MAIN-2024-10-2023-50/
 
 sleep 1000000000

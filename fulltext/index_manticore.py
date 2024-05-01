@@ -13,7 +13,7 @@ def insert_batch(batch):
     """
     ndjson = ""
 
-    index_name = f"fineweb{random.randint(0, 31)}"
+    index_name = f"fineweb{random.randint(0, 63)}"
 
     for text, _id, url, language_score, token_count in zip(
         batch["text"],
@@ -27,7 +27,7 @@ def insert_batch(batch):
                 "index": index_name,
                 "_id": _id.split(":")[-1].strip(">"),
                 "doc": {
-                    "content": text[:5000],
+                    "content": text,
                     "fw_id": _id.split(":")[-1].strip(">"),
                     "url": url,
                     "language_score": language_score,
@@ -68,7 +68,7 @@ def main():
 
 
     print("Creating table", file=sys.stderr)
-    for i in range(32):
+    for i in range(64):
         response = requests.post(sql_url, data={"query": f"drop table if exists fineweb{i}"})
         print(response.text, file=sys.stderr)
         local_query = f"create table fineweb{i}(content text, fw_id string, url string, language_score float, token_count int) charset_table='non_cjk' stopwords='en' morphology='stem_en'"
@@ -77,34 +77,35 @@ def main():
 
     # Then, construct and execute the distributed table creation query
     distributed_query = "create table fineweb type='distributed'"
-    for i in range(32):
+    for i in range(64):
         distributed_query += f" local='fineweb{i}'"
     response = requests.post(sql_url, data={"query": distributed_query})
     print(response.text, file=sys.stderr)
 
-    print("Loading dataset", file=sys.stderr)
-    dataset = load_dataset(
-        "HuggingFaceFW/fineweb",
-        "CC-MAIN-2024-10",
-        split="train",
-        num_proc=32,
-        cache_dir="/scratch/cosmo/.cache",
-    )
-    dataset = dataset.select_columns(
-        ["text", "id", "url", "language_score", "token_count"]
-    )
-    dataset = dataset.map(
-        insert_batch,
-        batched=True,
-        batch_size=10000,
-        remove_columns=["text", "id", "url", "language_score", "token_count"],
-        num_proc=32,
-    )
-    for _ in dataset:
-        pass
+    for dump in ["CC-MAIN-2024-10", "CC-MAIN-2023-50"]:
+        print("Loading dataset", file=sys.stderr)
+        dataset = load_dataset(
+            "HuggingFaceFW/fineweb",
+            dump,
+            split="train",
+            num_proc=64,
+            cache_dir="/scratch/cosmo/.cache",
+        )
+        dataset = dataset.select_columns(
+            ["text", "id", "url", "language_score", "token_count"]
+        )
+        dataset = dataset.map(
+            insert_batch,
+            batched=True,
+            batch_size=10000,
+            remove_columns=["text", "id", "url", "language_score", "token_count"],
+            num_proc=64,
+        )
+        for _ in dataset:
+            pass
 
     time.sleep(30)
-    for i in range(32):
+    for i in range(64):
         print(f"Optimizing table fineweb{i}", file=sys.stderr)
         response = requests.post(
             sql_url,
