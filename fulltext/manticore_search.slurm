@@ -17,8 +17,8 @@ ulimit -n 99999
 
 mkdir -p /scratch/cosmo/manticore_idx
 rm -rf /scratch/cosmo/manticore_idx/*
-#rclone copy -P --transfers 16 s3:cosmopedia-data/manticore_idx/CC-MAIN-2023-50/ /scratch/cosmo/manticore_idx/
-rclone copy -P --transfers 16 /fsx/anton/cosmopedia/search_index/index-CC-MAIN-2024-10/ /scratch/cosmo/manticore_idx/
+rclone copy -P --transfers 16 s3:cosmopedia-data/manticore_idx/CC-MAIN-2024-10-2023-50/ /scratch/cosmo/manticore_idx/
+#rclone copy -P --transfers 16 /fsx/anton/cosmopedia/search_index/index-CC-MAIN-2024-10/ /scratch/cosmo/manticore_idx/
 
 srun --container-image='manticoresearch/manticore:6.2.12' \
     --container-mounts="/scratch/cosmo/manticore_idx:/var/lib/manticore:z,$(pwd)/manticore.conf:/etc/manticoresearch/manticore.conf" \
@@ -26,4 +26,4 @@ srun --container-image='manticoresearch/manticore:6.2.12' \
     --qos high \
     /bin/bash -c 'mkdir -p /var/run/manticore && chown manticore:manticore /var/run/manticore && mkdir -p /var/run/mysqld && chown manticore:manticore /var/run/mysqld && /entrypoint.sh searchd -c /etc/manticoresearch/manticore.conf --nodetach' &
 
-python search.py
+python search_boosted.py
