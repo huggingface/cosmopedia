@@ -1,18 +1,21 @@
 import os
 import logging
 import pickle
+import json
 from collections import Counter
 
 import numpy as np
 from datasets import load_dataset
 from sentence_transformers import SentenceTransformer
-from sklearn.linear_model import LogisticRegression, LogisticRegressionCV
-from sklearn.metrics import f1_score, precision_score, recall_score, accuracy_score, make_scorer
-from sklearn.model_selection import  train_test_split
+from sklearn.linear_model import LogisticRegression, LogisticRegressionCV, Ridge, LinearRegression
+from sklearn.neural_network import MLPClassifier, MLPRegressor
+from sklearn.neighbors import KNeighborsClassifier, KNeighborsRegressor
+from sklearn.metrics import f1_score, make_scorer, classification_report, confusion_matrix
+from sklearn.model_selection import train_test_split, StratifiedKFold
 
 SEED = 0
-DATASET_NAME = "HuggingFaceTB/llama3_annotations_last_500k_fineweb_2024_parsed"
-TARGET_COL = "binary_target"
+DATASET_NAME = "HuggingFaceTB/llama3_edu_500k_binary_labels"
+TARGET_COL = "score"
 # llama3_74k_grades_for_classifier
 # llama3_20k_grades_for_classifier
 
@@ -21,7 +24,7 @@ logging.basicConfig(level=logging.INFO)
 dataset = load_dataset(DATASET_NAME, split="train", cache_dir="/scratch/cosmo/cache/")
 logging.info(f"Dataset {DATASET_NAME}: {dataset}")
 
-embed_model_name = "mixedbread-ai/mxbai-embed-large-v1"
+embed_model_name = "Snowflake/snowflake-arctic-embed-m"
 # embed_model_name = "all-MiniLM-L6-v2"
 embed_device = "cuda"
 embed_batch_size = 64
@@ -35,7 +38,7 @@ else:
 
 
 def embed(texts, cache_dir="/fsx/anton/cosmopedia/edu_score/embeddings_cache"):
-    cache_file = os.path.join(cache_dir, f"{DATASET_NAME.split('/')[1]}.pkl")
+    cache_file = os.path.join(cache_dir, f"{DATASET_NAME.split('/')[1]}_{embed_model_name.split('/')[1]}.pkl")
     if os.path.exists(cache_file):
         logging.info("Loading existing embeddings")
         with open(cache_file, "rb") as f:
@@ -62,12 +65,12 @@ def embed(texts, cache_dir="/fsx/anton/cosmopedia/edu_score/embeddings_cache"):
 
 # Prepare the data
 embeddings = embed(dataset["text"])
-if TARGET_COL not in dataset.column_names:
-    dataset = dataset.map(lambda x: {TARGET_COL: 1} if int(x["score"]) > 2.5 else {TARGET_COL: 0})
-    dataset.push_to_hub("HuggingFaceTB/llama3_edu_500k_binary_labels", private=True)
+    #dataset = dataset.map(lambda x: {TARGET_COL: 1} if int(x["score"]) > 2.5 else {TARGET_COL: 0})
+    #dataset.push_to_hub("HuggingFaceTB/llama3_edu_500k_binary_labels", private=True)
 
 X = np.array(embeddings)
 y = np.array(dataset[TARGET_COL])
+y = np.clip(y, 0, 5).round().astype(int)
 
 X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.1, random_state=42, stratify=y
@@ -79,9 +82,27 @@ logging.info(
 )
 
 # Train
-logging.info("Using Logistic Regression")
-pipeline = LogisticRegressionCV(Cs=10, cv=5, random_state=42, #class_weight='balanced',
-                                scoring=make_scorer(f1_score, average='binary'))
+# logging.info("Using Logistic Regression")
+# cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+# pipeline = LogisticRegressionCV(Cs=10, cv=cv, max_iter=1000, random_state=42, class_weight='balanced',
+#                                 scoring=make_scorer(f1_score, average='macro'))
+
+# logging.info("Using Ridge Regression")
+# pipeline = Ridge(alpha=0.1)
+
+# logging.info("Using Linear Regression")
+# pipeline = LinearRegression(
+#     fit_intercept=True, copy_X=True, n_jobs=16
+# )
+
+logging.info("Using MLP")
+pipeline = MLPClassifier(hidden_layer_sizes=(100, 50), max_iter=1000, learning_rate_init=5e-5, random_state=42, early_stopping=True, n_iter_no_change=20, verbose=True)
+
+#logging.info("Using MLPRegressor")
+#pipeline = MLPRegressor(hidden_layer_sizes=(100,), max_iter=1000, learning_rate_init=1e-5, random_state=42, early_stopping=True, n_iter_no_change=20, verbose=True)
+
+# logging.info("Using KNN")
+# pipeline = KNeighborsClassifier(n_neighbors=5, weights='distance', n_jobs=16)
 
 # logging.info("Using Random Forest")
 # pipeline = RandomForestClassifier(n_estimators=60, max_depth=10, random_state=42)
@@ -91,21 +112,37 @@ pipeline = LogisticRegressionCV(Cs=10, cv=5, random_state=42, #class_weight='bal
 #                       use_label_encoder=False, eval_metric='logloss', random_state=42)
 
 pipeline.fit(X_train, y_train)
+#print("Best C:", pipeline.C_)
 y_pred_train = pipeline.predict(X_train)
 y_pred_test = pipeline.predict(X_test)
-
-# Evaluate the model
-precision_train = precision_score(y_train, y_pred_train, average="macro")
-recall_train = recall_score(y_train, y_pred_train, average="macro")
-f1_train = f1_score(y_train, y_pred_train, average="macro")
-acc_train = accuracy_score(y_train, y_pred_train)
-
-precision_test = precision_score(y_test, y_pred_test, average="macro")
-recall_test = recall_score(y_test, y_pred_test, average="macro")
-f1_test = f1_score(y_test, y_pred_test, average="macro")
-acc_test = accuracy_score(y_test, y_pred_test)
+y_pred_train = np.clip(y_pred_train, 0, 5).round().astype(int)
+y_pred_test = np.clip(y_pred_test, 0, 5).round().astype(int)
 
 logging.info("Training Metrics:")
-logging.info(f"Accuracy: {acc_train}, Precision: {precision_train}, Recall: {recall_train}, F1 Score: {f1_train}")
+logging.info(classification_report(y_train, y_pred_train))
 logging.info("Test Metrics:")
-logging.info(f"Accuracy: {acc_test}, Precision: {precision_test}, Recall: {recall_test}, F1 Score: {f1_test}")
+logging.info(classification_report(y_test, y_pred_test))
+
+class NumpyEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        return json.JSONEncoder.default(self, obj)
+
+logging.info("Run stats:")
+logging.info(json.dumps({
+    #'model': {'name': 'LogisticRegressionCV', 'C': pipeline.C_, 'class_weight': pipeline.class_weight},
+    #'model': {'name': 'Ridge', 'alpha': 0.1},
+    #'model': {'name': 'LinearRegression'},
+    'model': {'name': 'MLPClassifier', 'hidden_layer_sizes': [100, 50], 'learning_rate_init': 3e-4},
+    #'model': {'name': 'KNN', 'n_neighbors': 5, 'weights': 'distance'},
+    #'model': {'name': 'MLPRegressor', 'hidden_layer_sizes': [100], 'learning_rate_init': 3e-4},
+    'embedding_model': embed_model_name,
+    'train_report': classification_report(y_train, y_pred_train, output_dict=True),
+    'test_report': classification_report(y_test, y_pred_test, output_dict=True),
+}, cls=NumpyEncoder))
+
+
+# logging.info("Confusion matrix:")
+logging.info(confusion_matrix(y_train, y_pred_train))
+logging.info(confusion_matrix(y_test, y_pred_test))
