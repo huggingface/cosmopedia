@@ -17,6 +17,6 @@ source activate lighteval
 
 python train_edu_bert.py \
     --base_model_name="Snowflake/snowflake-arctic-embed-m" \
-    --dataset_name="HuggingFaceTB/llama3_edu_500k_binary_labels" \
-    --target_column="score"\
-    --checkpoint_dir="/fsx/anton/cosmopedia/edu_score/bert_snowflake_regression_4"
+    --dataset_name="HuggingFaceTB/LLM_juries_fineweb_430k_annotations" \
+    --target_column="median_score"\
+    --checkpoint_dir="/fsx/anton/cosmopedia/edu_score/snowflake_regression_median_jury"
