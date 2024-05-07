@@ -87,9 +87,9 @@ def search_topic(sample):
         match_hits = []
     hits = boosted_hits + match_hits
     results = {
-        "top_category": top_category*len(hits),
-        "subcategory": subcategory*len(hits),
-        "subtopic": subtopic*len(hits),
+        "top_category": sample["top_category"]*len(hits),
+        "subcategory": sample["subcategory"]*len(hits),
+        "subtopic": sample["subtopic"]*len(hits),
         "topic_hits": hits
     }
     return results
