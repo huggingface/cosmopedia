@@ -39,7 +39,7 @@ data = data.select_columns(["top_category", "subcategory", "subtopic"])
 def run_query(query, n_pages):
     while True:
         try:
-            max_pages = 3_000
+            max_pages = 4_000
             response = requests.post(
                 "http://127.0.0.1:9308/search",
                 data=json.dumps(
@@ -81,19 +81,28 @@ def search_topic(sample):
     boosted_hits = run_query({"query_string": boosted_query}, args.n_pages)
     print(f"Boosted hits: {len(boosted_hits)} for {boosted_query}", file=sys.stderr)
     if len(boosted_hits) < args.n_pages:
-        match_hits = run_query({"match": {"content": match_query}}, args.n_pages - len(boosted_hits))
+        match_hits = run_query({"match": {"content": match_query}}, args.n_pages + len(boosted_hits))
         print(f"Match hits: {len(match_hits)} for {match_query}", file=sys.stderr)
     else:
         match_hits = []
-    hits = boosted_hits + match_hits
+
+    hit_ids = set()
+    hits = []
+    for hit in boosted_hits + match_hits:
+        if hit["_id"] not in hit_ids:
+            hits.append(hit)
+            hit_ids.add(hit["_id"])
+    hits = hits[:args.n_pages]
+
     results = {
         "top_category": sample["top_category"]*len(hits),
         "subcategory": sample["subcategory"]*len(hits),
         "subtopic": sample["subtopic"]*len(hits),
-        "topic_hits": hits
+        "topic_hits": hits,
+        "num_hits": [len(hits)]*len(hits),
     }
     return results
 
 
 data = data.map(search_topic, batched=True, batch_size=1, num_proc=2)
-data.push_to_hub(f"{args.output_dataset}_{args.shard}", private=True)
+data.push_to_hub(f"{args.output_dataset}_{args.shard}", private=True, max_shard_size="4096MB")

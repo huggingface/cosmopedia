@@ -7,7 +7,7 @@
 #SBATCH --mem-per-cpu=20G
 #SBATCH -o %x_%j.out
 #SBATCH -e %x_%j.err
-#SBATCH --array=0-15%2
+#SBATCH --array=0-15%8
 
 set -x -e
 source ~/.bashrc
