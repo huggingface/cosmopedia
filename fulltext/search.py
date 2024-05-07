@@ -14,7 +14,7 @@ def get_args():
     parser.add_argument("--input_dataset", type=str, default="HuggingFaceTB/bisac_expanded_final")
     parser.add_argument("--n_topics", type=int, default=-1)
     parser.add_argument("--n_pages", type=int, default=1000)
-    parser.add_argument("--save_interval", type=int, default=1000)
+    parser.add_argument("--save_interval", type=int, default=50)
     parser.add_argument("--target_datadet_prefix", type=str, default="bisac_boosted_new_index")
     parser.add_argument("--shuffle_seed", type=int, default=0)
     return parser.parse_args()
