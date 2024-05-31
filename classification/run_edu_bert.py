@@ -39,10 +39,10 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("--model_name", type=str, default="HuggingFaceTB/snowflake_m_edu_reg")
-    parser.add_argument("--dataset_name", type=str, default="HuggingFaceTB/bisac_3B_generations_college_students")
+    parser.add_argument("--model_name", type=str, default="HHuggingFaceFW/fineweb-edu-classifier")
+    parser.add_argument("--dataset_name", type=str, default="HuggingFaceFW/fineweb")
     parser.add_argument("--dataset_config", type=str, default="default")
-    parser.add_argument("--output_dataset_name", type=str, default="HuggingFaceTB/bisac_3B_generations_college_students_edu_scores")
+    parser.add_argument("--output_dataset_name", type=str, default="HuggingFaceFW/fineweb-edu")
     parser.add_argument("--output_dataset_config", type=str, default="default")
     parser.add_argument("--text_column", type=str, default="text")
     parser.add_argument("--shard", type=int, required=True)

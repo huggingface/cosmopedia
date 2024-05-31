@@ -19,10 +19,10 @@ source "/admin/home/anton/miniforge3/etc/profile.d/conda.sh"
 source activate lighteval
 
 python run_edu_bert.py \
-    --model_name="HuggingFaceTB/snowflake_m_edu_reg" \
+    --model_name="HuggingFaceFW/fineweb-edu-classifier" \
     --dataset_name="HuggingFaceFW/fineweb" \
     --dataset_config="CC-MAIN-2019-04" \
-    --output_dataset_name="HuggingFaceTB/fineweb_full_edu_reg" \
+    --output_dataset_name="HuggingFaceFW/fineweb-edu-annotations" \
     --output_dataset_config="CC-MAIN-2019-04" \
     --text_column="text" \
     --shard ${SLURM_ARRAY_TASK_ID} \
