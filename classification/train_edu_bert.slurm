@@ -12,11 +12,11 @@
 
 set -x -e
 source ~/.bashrc
-source "/admin/home/anton/miniforge3/etc/profile.d/conda.sh"
-source activate lighteval
+source "$CONDA_PREFIX/etc/profile.d/conda.sh"
+source activate pytorch
 
 python train_edu_bert.py \
     --base_model_name="Snowflake/snowflake-arctic-embed-m" \
-    --dataset_name="HuggingFaceTB/LLM_juries_fineweb_430k_annotations" \
-    --target_column="median_score"\
+    --dataset_name="HuggingFaceFW/fineweb-edu-llama3-annotations \
+    --target_column="score"\
     --checkpoint_dir="/fsx/anton/cosmopedia/edu_score/snowflake_regression_median_jury"
