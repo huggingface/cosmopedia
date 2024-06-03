@@ -110,7 +110,7 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--base_model_name", type=str, default="Snowflake/snowflake-arctic-embed-m")
-    parser.add_argument("--dataset_name", type=str, default="HuggingFaceTB/llama3_edu_500k_binary_labels")
+    parser.add_argument("--dataset_name", type=str, default="HuggingFaceFW/fineweb-edu-llama3-annotations")
     parser.add_argument("--target_column", type=str, default="score")
     parser.add_argument("--checkpoint_dir", type=str, default="/fsx/anton/cosmopedia/edu_score/bert_snowflake_regression")
     args = parser.parse_args()
