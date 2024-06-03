@@ -11,12 +11,12 @@
 #SBATCH -o %x_%j.out
 #SBATCH -e %x_%j.err
 #SBATCH --time=7-00:00:00
-#SBATCH --array=0,1,2,3,4,6,7,8,26,29,31%32
+#SBATCH --array=0-127%128
 
 set -x -e
 source ~/.bashrc
-source "/admin/home/anton/miniforge3/etc/profile.d/conda.sh"
-source activate lighteval
+source "$CONDA_PREFIX/etc/profile.d/conda.sh"
+source activate pytorch
 
 python run_edu_bert.py \
     --model_name="HuggingFaceFW/fineweb-edu-classifier" \
@@ -26,4 +26,4 @@ python run_edu_bert.py \
     --output_dataset_config="CC-MAIN-2019-04" \
     --text_column="text" \
     --shard ${SLURM_ARRAY_TASK_ID} \
-    --num_shards 32
+    --num_shards 128
