@@ -93,16 +93,6 @@ COMMON_SENSE_REASONING_TASKS = [
         hf_subset="default",
         metric=["loglikelihood_acc", "loglikelihood_acc_norm_nospace"],
     ),
-    LightevalTaskConfig(
-        name="gsm8k",
-        prompt_function="gsm8k",
-        hf_repo="gsm8k",
-        hf_subset="main",
-        evaluation_splits=["test"],
-        metric=["quasi_exact_match_gsm8k"],
-        generation_size=256,
-        stop_sequence=["Question:", "Question", ":"],
-    )
 ]
 
 
@@ -146,10 +136,24 @@ def hellaswag_prompt(line, task_name: str = None):
     )
 
 
+GSM8K = LightevalTaskConfig(
+    name="gsm8k",
+    prompt_function="gsm8k",
+    hf_repo="gsm8k",
+    hf_subset="main",
+    hf_avail_splits=["train", "test"],
+    evaluation_splits=["test"],
+    metric=["quasi_exact_match_gsm8k"],
+    generation_size=256,
+    stop_sequence=["Question:", "Question", ":"],
+)
+
 # 0 short for common sense
 COMMON_SENSE_REASONING_STRING = [(t, f"custom|{t.name}|0|1") for t in COMMON_SENSE_REASONING_TASKS]
 _TASKS_STRINGS.extend(COMMON_SENSE_REASONING_STRING)
+_TASKS_STRINGS.extend([(GSM8K, f"custom|{GSM8K.name}|2|1")])
 _TASKS += COMMON_SENSE_REASONING_TASKS
+_TASKS += [GSM8K]
 
 ## MMLU ##
 class CustomMMLUEvaluationTask(LightevalTaskConfig):
@@ -271,7 +275,7 @@ MMLU_STRING = [(t, f"custom|{t.name}|0|1") for t in MMLU_TASKS]
 _TASKS_STRINGS.extend(MMLU_STRING)
 _TASKS += MMLU_TASKS
 
-# common sense reasoning + mmlu
+# common sense reasoning + mmlu + gsm8k
 EARLY_SIGNAL_TASKS = ",".join([t[1] for t in COMMON_SENSE_REASONING_STRING] + [t[1] for t in MMLU_STRING])
 
 # Convert to dict for lighteval
@@ -279,4 +283,5 @@ TASKS_TABLE = [task.as_dict() for task in _TASKS]
 # You can have a few pre-organised groups of tasks
 TASKS_GROUPS = {
     "early-signal": EARLY_SIGNAL_TASKS,
+    "math": f"custom|{GSM8K.name}|2|1",
 }
