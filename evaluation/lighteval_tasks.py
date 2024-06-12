@@ -145,13 +145,14 @@ GSM8K = LightevalTaskConfig(
     evaluation_splits=["test"],
     metric=["quasi_exact_match_gsm8k"],
     generation_size=256,
-    stop_sequence=["Question:", "Question", ":"],
+    stop_sequence=["Question:", "Question"],
+    few_shots_select="random_sampling_from_train",
 )
 
 # 0 short for common sense
 COMMON_SENSE_REASONING_STRING = [(t, f"custom|{t.name}|0|1") for t in COMMON_SENSE_REASONING_TASKS]
 _TASKS_STRINGS.extend(COMMON_SENSE_REASONING_STRING)
-_TASKS_STRINGS.extend([(GSM8K, f"custom|{GSM8K.name}|2|1")])
+_TASKS_STRINGS.extend([(GSM8K, f"custom|{GSM8K.name}|5|1")])
 _TASKS += COMMON_SENSE_REASONING_TASKS
 _TASKS += [GSM8K]
 
@@ -283,5 +284,5 @@ TASKS_TABLE = [task.as_dict() for task in _TASKS]
 # You can have a few pre-organised groups of tasks
 TASKS_GROUPS = {
     "early-signal": EARLY_SIGNAL_TASKS,
-    "math": f"custom|{GSM8K.name}|2|1",
+    "math": f"custom|{GSM8K.name}|5|1",
 }
