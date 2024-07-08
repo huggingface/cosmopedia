@@ -93,7 +93,69 @@ COMMON_SENSE_REASONING_TASKS = [
         hf_subset="default",
         metric=["loglikelihood_acc", "loglikelihood_acc_norm_nospace"],
     ),
+    LightevalTaskConfig(
+        name="mmlu_pro_cloze",
+        prompt_function="mmlu_pro_cloze_prompt",
+        hf_repo="TIGER-Lab/MMLU-Pro",
+        hf_subset="default",
+        metric=["loglikelihood_acc", "loglikelihood_acc_norm_nospace"],
+        evaluation_splits=["test"],
+        few_shots_split="validation",
+        few_shots_select=None,
+        suite=None,
+        generation_size=-1,
+        stop_sequence=None,
+        output_regex=None,
+        frozen=False,
+    ),
+    LightevalTaskConfig(
+        name="mmlu_pro_mc",
+        prompt_function="mmlu_pro_mc_prompt",
+        hf_repo="TIGER-Lab/MMLU-Pro",
+        hf_subset="default",
+        metric=["loglikelihood_acc", "loglikelihood_acc_norm_nospace"],
+        evaluation_splits=["test"],
+        few_shots_split="validation",
+        few_shots_select=None,
+        suite=None,
+        generation_size=1,
+        stop_sequence=None,
+        output_regex=None,
+        frozen=False,
+    ),
 ]
+
+
+def mmlu_pro_cloze_prompt(line, task_name: str = None):
+    """MMLU-Pro prompt without letters"""
+    topic = line["category"]
+    prompt = f"The following are questions about {topic.replace('_', ' ')}.\nQuestion: "
+    prompt += line["question"] + "\nAnswer:"
+
+    return Doc(
+        task_name=task_name,
+        query=prompt,
+        choices=[f" {c}" for c in line["options"]],
+        gold_index=line["answer_index"],
+        instruction=f"The following are questions about {topic.replace('_', ' ')}.\n",
+    )
+
+
+def mmlu_pro_mc_prompt(line, task_name: str = None):
+    topic = line["category"]
+    query = f"The following are multiple choice questions (with answers) about {topic.replace('_', ' ')}.\n\n"
+    query += line["question"] + "\n"
+    query += "".join([f"{key}. {choice}\n" for key, choice in zip(LETTER_INDICES, line["options"])])
+    query += "Answer:"
+
+    return Doc(
+        task_name=task_name,
+        query=query,
+        choices=LETTER_INDICES[: len(line["options"])],
+        gold_index=line["answer_index"],
+        instruction=f"The following are multiple choice questions (with answers) about {topic.replace('_', ' ')}.\n\n",
+        target_for_fewshot_sorting=LETTER_INDICES[line["answer_index"]],
+    )
 
 
 def commonsense_qa_prompt(line, task_name: str = None):
@@ -193,71 +255,99 @@ class CustomMMLUEvaluationTask(LightevalTaskConfig):
             frozen=frozen,
         )
 
+MMLU_TASKS = []
+mmlu_subsets = [
+    "abstract_algebra",
+    "anatomy",
+    "astronomy",
+    "business_ethics",
+    "clinical_knowledge",
+    "college_biology",
+    "college_chemistry",
+    "college_computer_science",
+    "college_mathematics",
+    "college_medicine",
+    "college_physics",
+    "computer_security",
+    "conceptual_physics",
+    "econometrics",
+    "electrical_engineering",
+    "elementary_mathematics",
+    "formal_logic",
+    "global_facts",
+    "high_school_biology",
+    "high_school_chemistry",
+    "high_school_computer_science",
+    "high_school_european_history",
+    "high_school_geography",
+    "high_school_government_and_politics",
+    "high_school_macroeconomics",
+    "high_school_mathematics",
+    "high_school_microeconomics",
+    "high_school_physics",
+    "high_school_psychology",
+    "high_school_statistics",
+    "high_school_us_history",
+    "high_school_world_history",
+    "human_aging",
+    "human_sexuality",
+    "international_law",
+    "jurisprudence",
+    "logical_fallacies",
+    "machine_learning",
+    "management",
+    "marketing",
+    "medical_genetics",
+    "miscellaneous",
+    "moral_disputes",
+    "moral_scenarios",
+    "nutrition",
+    "philosophy",
+    "prehistory",
+    "professional_accounting",
+    "professional_law",
+    "professional_medicine",
+    "professional_psychology",
+    "public_relations",
+    "security_studies",
+    "sociology",
+    "us_foreign_policy",
+    "virology",
+    "world_religions",
+]
 
-MMLU_TASKS = [
-    CustomMMLUEvaluationTask(name="mmlu:abstract_algebra", hf_subset="abstract_algebra"),
-    CustomMMLUEvaluationTask(name="mmlu:anatomy", hf_subset="anatomy"),
-    CustomMMLUEvaluationTask(name="mmlu:astronomy", hf_subset="astronomy"),
-    CustomMMLUEvaluationTask(name="mmlu:business_ethics", hf_subset="business_ethics"),
-    CustomMMLUEvaluationTask(name="mmlu:clinical_knowledge", hf_subset="clinical_knowledge"),
-    CustomMMLUEvaluationTask(name="mmlu:college_biology", hf_subset="college_biology"),
-    CustomMMLUEvaluationTask(name="mmlu:college_chemistry", hf_subset="college_chemistry"),
-    CustomMMLUEvaluationTask(name="mmlu:college_computer_science", hf_subset="college_computer_science"),
-    CustomMMLUEvaluationTask(name="mmlu:college_mathematics", hf_subset="college_mathematics"),
-    CustomMMLUEvaluationTask(name="mmlu:college_medicine", hf_subset="college_medicine"),
-    CustomMMLUEvaluationTask(name="mmlu:college_physics", hf_subset="college_physics"),
-    CustomMMLUEvaluationTask(name="mmlu:computer_security", hf_subset="computer_security"),
-    CustomMMLUEvaluationTask(name="mmlu:conceptual_physics", hf_subset="conceptual_physics"),
-    CustomMMLUEvaluationTask(name="mmlu:econometrics", hf_subset="econometrics"),
-    CustomMMLUEvaluationTask(name="mmlu:electrical_engineering", hf_subset="electrical_engineering"),
-    CustomMMLUEvaluationTask(name="mmlu:elementary_mathematics", hf_subset="elementary_mathematics"),
-    CustomMMLUEvaluationTask(name="mmlu:formal_logic", hf_subset="formal_logic"),
-    CustomMMLUEvaluationTask(name="mmlu:global_facts", hf_subset="global_facts"),
-    CustomMMLUEvaluationTask(name="mmlu:high_school_biology", hf_subset="high_school_biology"),
-    CustomMMLUEvaluationTask(name="mmlu:high_school_chemistry", hf_subset="high_school_chemistry"),
-    CustomMMLUEvaluationTask(name="mmlu:high_school_computer_science", hf_subset="high_school_computer_science"),
-    CustomMMLUEvaluationTask(name="mmlu:high_school_european_history", hf_subset="high_school_european_history"),
-    CustomMMLUEvaluationTask(name="mmlu:high_school_geography", hf_subset="high_school_geography"),
+for answer_type in ("mc", "cloze"):
+    prompt_function = f"mmlu_{answer_type}_prompt"
+    generation_size = -1 if answer_type == "cloze" else 1
+    for subset in mmlu_subsets:
+        MMLU_TASKS.append(
+            CustomMMLUEvaluationTask(
+                name=f"mmlu_{answer_type}:{subset}",
+                prompt_function=prompt_function,
+                hf_subset=subset,
+                generation_size=generation_size
+            )
+        )
+
+MMLU_TASKS += [
     CustomMMLUEvaluationTask(
-        name="mmlu:high_school_government_and_politics", hf_subset="high_school_government_and_politics"
+        name=f"mmlu_stem_mc",
+        hf_repo="TIGER-Lab/MMLU-STEM",
+        prompt_function="mmlu_mc_prompt",
+        hf_subset="default",
+        generation_size=1
     ),
-    CustomMMLUEvaluationTask(name="mmlu:high_school_macroeconomics", hf_subset="high_school_macroeconomics"),
-    CustomMMLUEvaluationTask(name="mmlu:high_school_mathematics", hf_subset="high_school_mathematics"),
-    CustomMMLUEvaluationTask(name="mmlu:high_school_microeconomics", hf_subset="high_school_microeconomics"),
-    CustomMMLUEvaluationTask(name="mmlu:high_school_physics", hf_subset="high_school_physics"),
-    CustomMMLUEvaluationTask(name="mmlu:high_school_psychology", hf_subset="high_school_psychology"),
-    CustomMMLUEvaluationTask(name="mmlu:high_school_statistics", hf_subset="high_school_statistics"),
-    CustomMMLUEvaluationTask(name="mmlu:high_school_us_history", hf_subset="high_school_us_history"),
-    CustomMMLUEvaluationTask(name="mmlu:high_school_world_history", hf_subset="high_school_world_history"),
-    CustomMMLUEvaluationTask(name="mmlu:human_aging", hf_subset="human_aging"),
-    CustomMMLUEvaluationTask(name="mmlu:human_sexuality", hf_subset="human_sexuality"),
-    CustomMMLUEvaluationTask(name="mmlu:international_law", hf_subset="international_law"),
-    CustomMMLUEvaluationTask(name="mmlu:jurisprudence", hf_subset="jurisprudence"),
-    CustomMMLUEvaluationTask(name="mmlu:logical_fallacies", hf_subset="logical_fallacies"),
-    CustomMMLUEvaluationTask(name="mmlu:machine_learning", hf_subset="machine_learning"),
-    CustomMMLUEvaluationTask(name="mmlu:management", hf_subset="management"),
-    CustomMMLUEvaluationTask(name="mmlu:marketing", hf_subset="marketing"),
-    CustomMMLUEvaluationTask(name="mmlu:medical_genetics", hf_subset="medical_genetics"),
-    CustomMMLUEvaluationTask(name="mmlu:miscellaneous", hf_subset="miscellaneous"),
-    CustomMMLUEvaluationTask(name="mmlu:moral_disputes", hf_subset="moral_disputes"),
-    CustomMMLUEvaluationTask(name="mmlu:moral_scenarios", hf_subset="moral_scenarios"),
-    CustomMMLUEvaluationTask(name="mmlu:nutrition", hf_subset="nutrition"),
-    CustomMMLUEvaluationTask(name="mmlu:philosophy", hf_subset="philosophy"),
-    CustomMMLUEvaluationTask(name="mmlu:prehistory", hf_subset="prehistory"),
-    CustomMMLUEvaluationTask(name="mmlu:professional_accounting", hf_subset="professional_accounting"),
-    CustomMMLUEvaluationTask(name="mmlu:professional_law", hf_subset="professional_law"),
-    CustomMMLUEvaluationTask(name="mmlu:professional_medicine", hf_subset="professional_medicine"),
-    CustomMMLUEvaluationTask(name="mmlu:professional_psychology", hf_subset="professional_psychology"),
-    CustomMMLUEvaluationTask(name="mmlu:public_relations", hf_subset="public_relations"),
-    CustomMMLUEvaluationTask(name="mmlu:security_studies", hf_subset="security_studies"),
-    CustomMMLUEvaluationTask(name="mmlu:sociology", hf_subset="sociology"),
-    CustomMMLUEvaluationTask(name="mmlu:us_foreign_policy", hf_subset="us_foreign_policy"),
-    CustomMMLUEvaluationTask(name="mmlu:virology", hf_subset="virology"),
-    CustomMMLUEvaluationTask(name="mmlu:world_religions", hf_subset="world_religions"),
+    CustomMMLUEvaluationTask(
+        name=f"mmlu_stem_cloze",
+        hf_repo="TIGER-Lab/MMLU-STEM",
+        prompt_function="mmlu_cloze_prompt",
+        hf_subset="default",
+        generation_size=-1
+    ),
 ]
 
 
-def mmlu_prompt(line, task_name: str = None):
+def mmlu_cloze_prompt(line, task_name: str = None):
     """MMLU prompt without letters"""
     topic = line["subject"]
     prompt = f"The following are questions about {topic.replace('_', ' ')}.\nQuestion: "
@@ -272,11 +362,30 @@ def mmlu_prompt(line, task_name: str = None):
     )
 
 
+def mmlu_mc_prompt(line, task_name: str = None):
+    topic = line["subject"]
+    query = f"The following are multiple choice questions (with answers) about {topic.replace('_', ' ')}.\n\n"
+    query += line["question"] + "\n"
+    query += "".join([f"{key}. {choice}\n" for key, choice in zip(LETTER_INDICES, line["choices"])])
+    query += "Answer:"
+
+    gold_ix = LETTER_INDICES.index(line["answer"]) if isinstance(line["answer"], str) else line["answer"]
+
+    return Doc(
+        task_name=task_name,
+        query=query,
+        choices=[" A", " B", " C", " D"],
+        gold_index=gold_ix,
+        instruction=f"The following are multiple choice questions (with answers) about {topic.replace('_', ' ')}.\n\n",
+        target_for_fewshot_sorting=[" A", " B", " C", " D"][gold_ix],
+    )
+
+
 MMLU_STRING = [(t, f"custom|{t.name}|0|1") for t in MMLU_TASKS]
 _TASKS_STRINGS.extend(MMLU_STRING)
 _TASKS += MMLU_TASKS
 
-# common sense reasoning + mmlu + gsm8k
+# common sense reasoning + mmlu
 EARLY_SIGNAL_TASKS = ",".join([t[1] for t in COMMON_SENSE_REASONING_STRING] + [t[1] for t in MMLU_STRING])
 
 # Convert to dict for lighteval
