@@ -123,7 +123,38 @@ COMMON_SENSE_REASONING_TASKS = [
         output_regex=None,
         frozen=False,
     ),
+    LightevalTaskConfig(
+        name="boolq",
+        prompt_function="boolq_prompt",
+        hf_repo="super_glue",
+        hf_subset="boolq",
+        metric=["loglikelihood_acc", "loglikelihood_acc_norm_nospace"],
+        trust_dataset=True,
+        stop_sequence=["\n"],
+    ),
+    LightevalTaskConfig(
+        name="trivia_qa",
+        prompt_function="triviaqa",
+        hf_repo="mandarjoshi/trivia_qa",
+        hf_subset="rc.nocontext",
+        hf_avail_splits=["train", "test"],
+        evaluation_splits=["test"],
+        metric=["quasi_exact_match_triviaqa"],
+        generation_size=20,
+        trust_dataset=True,
+        stop_sequence=["\n", ".", ","],
+        few_shots_select="random_sampling_from_train",
+    ),
 ]
+
+
+def boolq_prompt(line, task_name: str = None):
+    return Doc(
+        task_name=task_name,
+        query=f"{line['passage']}\nQuestion: {line['question'].capitalize()}?\nAnswer:",
+        choices=[" No", " Yes"],  # Only gold
+        gold_index=int(line["label"]),
+    )
 
 
 def mmlu_pro_cloze_prompt(line, task_name: str = None):
