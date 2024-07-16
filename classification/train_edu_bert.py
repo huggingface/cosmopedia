@@ -49,7 +49,8 @@ def main(args):
         args.dataset_name, split="train", cache_dir="/scratch/cosmo/cache/", num_proc=8
     )
     dataset = dataset.map(
-        lambda x: {args.target_column: np.clip(int(x[args.target_column]), 0, 5)}, num_proc=8
+        lambda x: {args.target_column: np.clip(int(x[args.target_column]), 0, 5)},
+        num_proc=8,
     )
 
     dataset = dataset.cast_column(
@@ -60,10 +61,15 @@ def main(args):
     )
 
     model = AutoModelForSequenceClassification.from_pretrained(
-        args.base_model_name, num_labels=1, classifier_dropout=0.0, hidden_dropout_prob=0.0, output_hidden_states=False
+        args.base_model_name,
+        num_labels=1,
+        classifier_dropout=0.0,
+        hidden_dropout_prob=0.0,
+        output_hidden_states=False,
     )
     tokenizer = AutoTokenizer.from_pretrained(
-        args.base_model_name, model_max_length=min(model.config.max_position_embeddings, 512)
+        args.base_model_name,
+        model_max_length=min(model.config.max_position_embeddings, 512),
     )
     if not tokenizer.pad_token:
         tokenizer.pad_token = tokenizer.eos_token
@@ -99,7 +105,7 @@ def main(args):
         metric_for_best_model="f1_macro",
         greater_is_better=True,
         bf16=True,
-        push_to_hub=True
+        push_to_hub=True,
     )
 
     trainer = Trainer(
@@ -118,11 +124,23 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--base_model_name", type=str, default="Snowflake/snowflake-arctic-embed-m")
-    parser.add_argument("--dataset_name", type=str, default="HuggingFaceFW/fineweb-edu-llama3-annotations")
+    parser.add_argument(
+        "--base_model_name", type=str, default="Snowflake/snowflake-arctic-embed-m"
+    )
+    parser.add_argument(
+        "--dataset_name",
+        type=str,
+        default="HuggingFaceFW/fineweb-edu-llama3-annotations",
+    )
     parser.add_argument("--target_column", type=str, default="score")
-    parser.add_argument("--checkpoint_dir", type=str, default="/fsx/anton/cosmopedia/edu_score/bert_snowflake_regression")
-    parser.add_argument("--output_model_name", type=str, default="HuggingFaceTB/fineweb-edu-scorer")
+    parser.add_argument(
+        "--checkpoint_dir",
+        type=str,
+        default="/fsx/anton/cosmopedia/edu_score/bert_snowflake_regression",
+    )
+    parser.add_argument(
+        "--output_model_name", type=str, default="HuggingFaceTB/fineweb-edu-scorer"
+    )
     args = parser.parse_args()
 
     main(args)

@@ -63,10 +63,11 @@ def main():
             time.sleep(5)
             pass
 
-
     print("Creating table", file=sys.stderr)
     for i in range(64):
-        response = requests.post(sql_url, data={"query": f"drop table if exists fineweb{i}"})
+        response = requests.post(
+            sql_url, data={"query": f"drop table if exists fineweb{i}"}
+        )
         print(response.text, file=sys.stderr)
         local_query = f"create table fineweb{i}(content text, fw_id string, url string, language_score float, token_count int) charset_table='non_cjk' stopwords='en' morphology='stem_en'"
         response = requests.post(sql_url, data={"query": local_query})

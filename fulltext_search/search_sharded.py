@@ -9,9 +9,15 @@ from datasets import load_dataset
 
 def get_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--input_dataset", type=str, default="HuggingFaceTB/bisac_expanded_final")
+    parser.add_argument(
+        "--input_dataset", type=str, default="HuggingFaceTB/bisac_expanded_final"
+    )
     parser.add_argument("--n_pages", type=int, default=2000)
-    parser.add_argument("--output_dataset", type=str, default="HuggingFaceTB/bisac_boosted_new_index_2000")
+    parser.add_argument(
+        "--output_dataset",
+        type=str,
+        default="HuggingFaceTB/bisac_boosted_new_index_2000",
+    )
     parser.add_argument("--shard", type=int, required=True)
     parser.add_argument("--num_shards", type=int, required=True)
     return parser.parse_args()
@@ -31,7 +37,9 @@ while True:
 
 
 args = get_args()
-data = load_dataset(args.input_dataset, split="train", cache_dir="/scratch/cosmo/.cache")
+data = load_dataset(
+    args.input_dataset, split="train", cache_dir="/scratch/cosmo/.cache"
+)
 data = data.filter(lambda x, i: i % args.num_shards == args.shard, with_indices=True)
 data = data.select_columns(["top_category", "subcategory", "subtopic"])
 
@@ -69,10 +77,10 @@ def search_topic(sample):
     top_category = sample["top_category"][0].strip()
     subcategory = sample["subcategory"][0].strip()
     subtopic = sample["subtopic"][0].strip()
-    for c in ['!', '"', '$', "'", '(', ')', '/', '<', '@', '\\', '^', '|', '~']:
-        top_category = top_category.replace(c, ' ')
-        subcategory = subcategory.replace(c, ' ')
-        subtopic = subtopic.replace(c, ' ')
+    for c in ["!", '"', "$", "'", "(", ")", "/", "<", "@", "\\", "^", "|", "~"]:
+        top_category = top_category.replace(c, " ")
+        subcategory = subcategory.replace(c, " ")
+        subtopic = subtopic.replace(c, " ")
     # boosting the IDF score of subtopic tokens
     boosted_subtopic = " ".join([w + "^2" for w in subtopic.split()])
     match_query = " ".join([top_category, subcategory, subtopic])
@@ -81,7 +89,9 @@ def search_topic(sample):
     boosted_hits = run_query({"query_string": boosted_query}, args.n_pages)
     print(f"Boosted hits: {len(boosted_hits)} for {boosted_query}", file=sys.stderr)
     if len(boosted_hits) < args.n_pages:
-        match_hits = run_query({"match": {"content": match_query}}, args.n_pages + len(boosted_hits))
+        match_hits = run_query(
+            {"match": {"content": match_query}}, args.n_pages + len(boosted_hits)
+        )
         print(f"Match hits: {len(match_hits)} for {match_query}", file=sys.stderr)
     else:
         match_hits = []
@@ -92,17 +102,19 @@ def search_topic(sample):
         if hit["_id"] not in hit_ids:
             hits.append(hit)
             hit_ids.add(hit["_id"])
-    hits = hits[:args.n_pages]
+    hits = hits[: args.n_pages]
 
     results = {
-        "top_category": sample["top_category"]*len(hits),
-        "subcategory": sample["subcategory"]*len(hits),
-        "subtopic": sample["subtopic"]*len(hits),
+        "top_category": sample["top_category"] * len(hits),
+        "subcategory": sample["subcategory"] * len(hits),
+        "subtopic": sample["subtopic"] * len(hits),
         "topic_hits": hits,
-        "num_hits": [len(hits)]*len(hits),
+        "num_hits": [len(hits)] * len(hits),
     }
     return results
 
 
 data = data.map(search_topic, batched=True, batch_size=1, num_proc=2)
-data.push_to_hub(f"{args.output_dataset}_{args.shard}", private=True, max_shard_size="4096MB")
+data.push_to_hub(
+    f"{args.output_dataset}_{args.shard}", private=True, max_shard_size="4096MB"
+)
