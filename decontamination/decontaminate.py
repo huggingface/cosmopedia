@@ -65,7 +65,7 @@ def add_match_stats(example):
 def main(args):
     # Load the evaluation data to build n-grams index
     eval_ngrams, eval_datasets, eval_texts = {}, [], []
-    eval_data = load_dataset(args.eval_dataset, split="train")
+    eval_data = load_dataset(args.eval_dataset, split="train", num_proc=args.num_proc)
     for example in tqdm(eval_data):
         tokens = tokenize(example["text"])
         ngrams = get_ngrams(tokens, args.ngram_length)
@@ -82,7 +82,7 @@ def main(args):
         elif train_dataset_path.suffix == ".csv":
             train_data = Dataset.from_csv(args.train_dataset)
     else:
-        train_data = load_dataset(args.train_dataset, split="train")
+        train_data = load_dataset(args.train_dataset, split="train", num_proc=args.num_proc)
 
     contamination_report = train_data.map(
         lambda batch: retrieve_ngrams_batch(batch, eval_ngrams, eval_datasets, eval_texts, args.ngram_length),
@@ -117,7 +117,7 @@ if __name__ == "__main__":
     parser.add_argument("--ngram_length", type=int, default=10, help="Length of the n-grams to consider.")
     parser.add_argument("--diff_threshold", type=float, default=0.5,
                         help="Threshold for filtering based on difference ratio.")
-    parser.add_argument("--num_proc", type=int, default=90, help="Number of processes to use for map operations.")
+    parser.add_argument("--num_proc", type=int, default=16, help="Number of processes to use for map operations.")
     parser.add_argument("--save_decontaminated", action='store_true',
                         help="Whether to save the decontaminated dataset.")
 
