@@ -17,6 +17,7 @@ source activate pytorch
 
 python train_edu_bert.py \
     --base_model_name="Snowflake/snowflake-arctic-embed-m" \
-    --dataset_name="HuggingFaceFW/fineweb-edu-llama3-annotations \
-    --target_column="score"\
-    --checkpoint_dir="/fsx/anton/cosmopedia/edu_score/snowflake_regression_median_jury"
+    --dataset_name="HuggingFaceFW/fineweb-edu-llama3-annotations" \
+    --target_column="score" \
+    --checkpoint_dir="/fsx/anton/cosmopedia/edu_score/snowflake_regression_median_jury" \
+    --output_model_name="HuggingFaceTB/fineweb-edu-scorer"

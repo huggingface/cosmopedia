@@ -59,7 +59,14 @@ def main(args):
         train_size=0.9, seed=42, stratify_by_column=args.target_column
     )
 
-    tokenizer = AutoTokenizer.from_pretrained(args.base_model_name)
+    model = AutoModelForSequenceClassification.from_pretrained(
+        args.base_model_name, num_labels=1, classifier_dropout=0.0, hidden_dropout_prob=0.0, output_hidden_states=False
+    )
+    tokenizer = AutoTokenizer.from_pretrained(
+        args.base_model_name, model_max_length=min(model.config.max_position_embeddings, 512)
+    )
+    if not tokenizer.pad_token:
+        tokenizer.pad_token = tokenizer.eos_token
 
     def preprocess(examples):
         batch = tokenizer(examples["text"], truncation=True)
@@ -68,7 +75,6 @@ def main(args):
 
     dataset = dataset.map(preprocess, batched=True)
     data_collator = DataCollatorWithPadding(tokenizer=tokenizer)
-    model = AutoModelForSequenceClassification.from_pretrained(args.base_model_name, num_labels=1, classifier_dropout=0.0, hidden_dropout_prob=0.0)
 
     for param in model.bert.embeddings.parameters():
         param.requires_grad = False
@@ -77,7 +83,8 @@ def main(args):
 
     training_args = TrainingArguments(
         output_dir=args.checkpoint_dir,
-        evaluation_strategy="steps",
+        hub_model_id=args.output_model_name,
+        eval_strategy="steps",
         save_strategy="steps",
         eval_steps=1000,
         save_steps=1000,
@@ -87,10 +94,12 @@ def main(args):
         seed=0,
         per_device_train_batch_size=256,
         per_device_eval_batch_size=128,
+        eval_on_start=True,
         load_best_model_at_end=True,
         metric_for_best_model="f1_macro",
         greater_is_better=True,
         bf16=True,
+        push_to_hub=True
     )
 
     trainer = Trainer(
@@ -113,6 +122,7 @@ if __name__ == "__main__":
     parser.add_argument("--dataset_name", type=str, default="HuggingFaceFW/fineweb-edu-llama3-annotations")
     parser.add_argument("--target_column", type=str, default="score")
     parser.add_argument("--checkpoint_dir", type=str, default="/fsx/anton/cosmopedia/edu_score/bert_snowflake_regression")
+    parser.add_argument("--output_model_name", type=str, default="HuggingFaceTB/fineweb-edu-scorer")
     args = parser.parse_args()
 
     main(args)
