@@ -241,13 +241,37 @@ GSM8K = LightevalTaskConfig(
     stop_sequence=["Question:", "Question"],
     few_shots_select="random_sampling_from_train",
 )
+MATH_TASKS = [
+    LightevalTaskConfig(
+        name=f"math:{subset}",
+        prompt_function="math",
+        hf_repo="lighteval/MATH",
+        hf_subset=subset,
+        hf_avail_splits=["train", "test"],
+        evaluation_splits=["test"],
+        metric=["quasi_exact_match_math"],
+        generation_size=256,
+        stop_sequence=["Problem:", "Problem"],
+        few_shots_select="random_sampling_from_train",
+    )
+    for subset in [
+        "algebra",
+        "counting_and_probability",
+        "geometry",
+        "intermediate_algebra",
+        "number_theory",
+        "prealgebra",
+        "precalculus",
+    ]
+]
 
 # 0 short for common sense
 COMMON_SENSE_REASONING_STRING = [(t, f"custom|{t.name}|0|1") for t in COMMON_SENSE_REASONING_TASKS]
 _TASKS_STRINGS.extend(COMMON_SENSE_REASONING_STRING)
 _TASKS_STRINGS.extend([(GSM8K, f"custom|{GSM8K.name}|5|1")])
+_TASKS_STRINGS.extend([(t, f"custom|{t.name}|4|1") for t in MATH_TASKS])
 _TASKS += COMMON_SENSE_REASONING_TASKS
-_TASKS += [GSM8K]
+_TASKS += [GSM8K] + MATH_TASKS
 
 ## MMLU ##
 class CustomMMLUEvaluationTask(LightevalTaskConfig):
@@ -424,5 +448,5 @@ TASKS_TABLE = [task.as_dict() for task in _TASKS]
 # You can have a few pre-organised groups of tasks
 TASKS_GROUPS = {
     "early-signal": EARLY_SIGNAL_TASKS,
-    "math": f"custom|{GSM8K.name}|5|1",
+    "math": f"custom|{GSM8K.name}|5|1" + "," + ",".join([f"custom|{t.name}|4|1" for t in MATH_TASKS]),
 }
