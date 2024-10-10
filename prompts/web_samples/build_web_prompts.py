@@ -2,11 +2,10 @@ import argparse
 import random
 from datasets import load_dataset
 
-
 STYLES = {"wikihow":
 """Here is an extract from a webpage: "<INSERT_EXTRACT>".
 
-Write a long and very detailed tutorial that could be part of WikiHow whose title is related to the extract above<ADD_TOPIC>. Include in depth explanations for each step and how it helps achieve the desired outcome, inluding key tips and guidelines. 
+Write a long and very detailed tutorial that could be part of WikiHow whose title is related to the extract above<ADD_TOPIC>. Include in depth explanations for each step and how it helps achieve the desired outcome, including key tips and guidelines. 
 Ensure clarity and practicality, allowing readers to easily follow and apply the instructions. Do not use images.""",
 
 "textbook_narrative":
