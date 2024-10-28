@@ -22,10 +22,10 @@ Instead, we use the full MMLU answer as the target.
 import re
 from typing import List, Tuple
 
-from lighteval.metrics import Metrics
+from lighteval.metrics.metrics import Metrics
 from lighteval.tasks.lighteval_task import LightevalTaskConfig
 from lighteval.tasks.requests import Doc
-from lighteval.tasks.tasks_prompt_formatting import LETTER_INDICES
+from lighteval.tasks.default_prompts import LETTER_INDICES
 
 _TASKS_STRINGS: List[Tuple[LightevalTaskConfig, str]] = []
 _TASKS: List[LightevalTaskConfig] = []
@@ -37,21 +37,21 @@ COMMON_SENSE_REASONING_TASKS = [
         prompt_function="hellaswag_prompt",
         hf_repo="hellaswag",
         hf_subset="default",
-        metric=["loglikelihood_acc", "loglikelihood_acc_norm_nospace"],
+        metric=[Metrics.loglikelihood_acc, Metrics.loglikelihood_acc_norm_nospace],
     ),
     LightevalTaskConfig(
         name="winogrande",
         prompt_function="winogrande",
         hf_repo="winogrande",
         hf_subset="winogrande_xl",
-        metric=["loglikelihood_acc", "loglikelihood_acc_norm_nospace"],
+        metric=[Metrics.loglikelihood_acc, Metrics.loglikelihood_acc_norm_nospace],
     ),
     LightevalTaskConfig(
         name="piqa",
         prompt_function="piqa_harness",
         hf_repo="piqa",
         hf_subset="plain_text",
-        metric=["loglikelihood_acc", "loglikelihood_acc_norm_nospace"],
+        metric=[Metrics.loglikelihood_acc, Metrics.loglikelihood_acc_norm_nospace],
     ),
     LightevalTaskConfig(
         name="siqa",
@@ -59,14 +59,14 @@ COMMON_SENSE_REASONING_TASKS = [
         hf_repo="lighteval/siqa",
         hf_subset="default",
         hf_avail_splits=["train", "validation"],
-        metric=["loglikelihood_acc", "loglikelihood_acc_norm_nospace"],
+        metric=[Metrics.loglikelihood_acc, Metrics.loglikelihood_acc_norm_nospace],
     ),
     LightevalTaskConfig(
         name="openbookqa",
         prompt_function="openbookqa",
         hf_repo="openbookqa",
         hf_subset="main",
-        metric=["loglikelihood_acc", "loglikelihood_acc_norm_nospace"],
+        metric=[Metrics.loglikelihood_acc, Metrics.loglikelihood_acc_norm_nospace],
     ),
     LightevalTaskConfig(
         name="arc:easy",
@@ -75,7 +75,7 @@ COMMON_SENSE_REASONING_TASKS = [
         hf_subset="ARC-Easy",
         evaluation_splits=["test"],
         generation_size=1,
-        metric=["loglikelihood_acc", "loglikelihood_acc_norm_nospace"],
+        metric=[Metrics.loglikelihood_acc, Metrics.loglikelihood_acc_norm_nospace],
     ),
     LightevalTaskConfig(
         name="arc:challenge",
@@ -84,25 +84,24 @@ COMMON_SENSE_REASONING_TASKS = [
         hf_subset="ARC-Challenge",
         evaluation_splits=["test"],
         generation_size=1,
-        metric=["loglikelihood_acc", "loglikelihood_acc_norm_nospace"],
+        metric=[Metrics.loglikelihood_acc, Metrics.loglikelihood_acc_norm_nospace],
     ),
     LightevalTaskConfig(
         name="commonsense_qa",
         prompt_function="commonsense_qa_prompt",
         hf_repo="commonsense_qa",
         hf_subset="default",
-        metric=["loglikelihood_acc", "loglikelihood_acc_norm_nospace"],
+        metric=[Metrics.loglikelihood_acc, Metrics.loglikelihood_acc_norm_nospace],
     ),
     LightevalTaskConfig(
         name="mmlu_pro_cloze",
         prompt_function="mmlu_pro_cloze_prompt",
         hf_repo="TIGER-Lab/MMLU-Pro",
         hf_subset="default",
-        metric=["loglikelihood_acc", "loglikelihood_acc_norm_nospace"],
+        metric=[Metrics.loglikelihood_acc, Metrics.loglikelihood_acc_norm_nospace],
         evaluation_splits=["test"],
         few_shots_split="validation",
         few_shots_select=None,
-        suite=None,
         generation_size=-1,
         stop_sequence=None,
         output_regex=None,
@@ -113,11 +112,10 @@ COMMON_SENSE_REASONING_TASKS = [
         prompt_function="mmlu_pro_mc_prompt",
         hf_repo="TIGER-Lab/MMLU-Pro",
         hf_subset="default",
-        metric=["loglikelihood_acc", "loglikelihood_acc_norm_nospace"],
+        metric=[Metrics.loglikelihood_acc, Metrics.loglikelihood_acc_norm_nospace],
         evaluation_splits=["test"],
         few_shots_split="validation",
         few_shots_select=None,
-        suite=None,
         generation_size=1,
         stop_sequence=None,
         output_regex=None,
@@ -128,7 +126,7 @@ COMMON_SENSE_REASONING_TASKS = [
         prompt_function="boolq_prompt",
         hf_repo="super_glue",
         hf_subset="boolq",
-        metric=["loglikelihood_acc", "loglikelihood_acc_norm_nospace"],
+        metric=[Metrics.loglikelihood_acc, Metrics.loglikelihood_acc_norm_nospace],
         trust_dataset=True,
         stop_sequence=["\n"],
     ),
@@ -139,7 +137,7 @@ COMMON_SENSE_REASONING_TASKS = [
         hf_subset="rc.nocontext",
         hf_avail_splits=["train", "validation"],
         evaluation_splits=["validation"],
-        metric=["quasi_exact_match_triviaqa"],
+        metric=[Metrics.quasi_exact_match_triviaqa],
         generation_size=20,
         trust_dataset=True,
         stop_sequence=["\n", ".", ","],
@@ -236,7 +234,7 @@ GSM8K = LightevalTaskConfig(
     hf_subset="main",
     hf_avail_splits=["train", "test"],
     evaluation_splits=["test"],
-    metric=["quasi_exact_match_gsm8k"],
+    metric=[Metrics.quasi_exact_match_gsm8k],
     generation_size=256,
     stop_sequence=["Question:", "Question"],
     few_shots_select="random_sampling_from_train",
@@ -249,7 +247,7 @@ MATH_TASKS = [
         hf_subset=subset,
         hf_avail_splits=["train", "test"],
         evaluation_splits=["test"],
-        metric=["quasi_exact_match_math"],
+        metric=[Metrics.quasi_exact_match_math],
         generation_size=256,
         stop_sequence=["Problem:", "Problem"],
         few_shots_select="random_sampling_from_train",
@@ -287,7 +285,6 @@ class CustomMMLUEvaluationTask(LightevalTaskConfig):
         evaluation_splits=["test"],
         few_shots_split="dev",
         few_shots_select=None,
-        suite=None,
         generation_size=-1,
         stop_sequence=None,
         output_regex=None,
@@ -303,7 +300,6 @@ class CustomMMLUEvaluationTask(LightevalTaskConfig):
             evaluation_splits=evaluation_splits,
             few_shots_split=few_shots_split,
             few_shots_select=few_shots_select,
-            suite=suite,
             generation_size=generation_size,
             stop_sequence=stop_sequence,
             output_regex=output_regex,
@@ -444,7 +440,7 @@ _TASKS += MMLU_TASKS
 EARLY_SIGNAL_TASKS = ",".join([t[1] for t in COMMON_SENSE_REASONING_STRING] + [t[1] for t in MMLU_STRING])
 
 # Convert to dict for lighteval
-TASKS_TABLE = [task.as_dict() for task in _TASKS]
+TASKS_TABLE = _TASKS
 # You can have a few pre-organised groups of tasks
 TASKS_GROUPS = {
     "early-signal": EARLY_SIGNAL_TASKS,
