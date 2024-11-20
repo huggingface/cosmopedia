@@ -7,8 +7,6 @@ To run the script, please install the latest version of the `lighteval` library:
 ```bash
 git clone https://github.com/huggingface/lighteval.git
 cd lighteval
-# important to checkout the commit that contains a fix for the short context models
-git checkout 60646959cea6ff183688a37eeae443efc1fa4584 
 conda create -n lighteval python=3.10 && conda activate lighteval
 pip install '.[accelerate,quantization,adapters]'
 ```
