@@ -148,7 +148,7 @@ remove = ['Online Gambling and Casinos',
     'Entertainment & Media',
     'Real Estate & Property Management',
     'Weight Loss and Body Contouring',
-    'Moving Services and Logistics'
+    'Moving Services and Logistics',
     'Transportation and City Planning',
     'Home Decoration and Furniture',
     'Events and Conferences',
